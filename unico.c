@@ -29,4 +29,8 @@ void unico_create_co(unico_co_state* state, unico_stack* stack, unico_coro fn) {
 	aco_resume(state->other_co);
 }
 
+#elif USE_YACO
+
+// all implemented as macros in unico.h
+
 #endif

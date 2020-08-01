@@ -41,7 +41,7 @@ int main() {
 	// depending on the platform, the coroutine may have to be destroyed before freeing
 	// the stack
 	unico_free_co(&co);
-	unico_free_stack(stk);
+	unico_free_stack(&stk);
 
 	unico_thread_free();
 }

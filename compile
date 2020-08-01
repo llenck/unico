@@ -46,6 +46,24 @@ if [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "i386" ]; then
 	echo "Creating static library unico.a for files from libaco"
 	rm -f unico.a # ar doesn't overwrite, so we have to delete the old version if present
 	ar -rcs unico.a acosw.o aco.o || err_msg "Error creating unico.a"
+elif [[ "$ARCH" =~ armv7.* ]]; then
+	# build yaco; it uses cmake, but building ourselves makes us more consistent
+	# (and I also wrote yaco so I'll know if we need to change the build process)
+	clone_if_any_missing 'https://github.com/llenck/yaco' \
+		yaco/lib/yaco.c yaco/lib/yaco-asm.s yaco/include/yaco.h
+
+	echo "Copying over files from yaco"
+	cp yaco/lib/yaco.c yaco/lib/yaco-asm.s ./ || err_msg \
+		"Couldn't copy yaco.c or yaco-asm.s"
+	cp yaco/include/yaco.h include/ || err_msg "Couldn't copy yaco.h"
+
+	echo "Compiling object files for yaco"
+	"$CC" $CFLAGS $INCLUDEDIRS -c yaco.c || err_msg "Error compiling yaco.c"
+	"$CC" $CFLAGS $INCLUDEDIRS -c yaco-asm.s || err_msg "Error compiling yaco-asm.s"
+
+	echo "Creating static library unico.a for files from yaco"
+	rm -f unico.a
+	ar -rcs unico.a yaco.o yaco-asm.o || err_msg "Error creating unico.a"
 else
 	err_msg "Architecture not supported"
 fi
