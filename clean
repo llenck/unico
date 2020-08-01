@@ -4,4 +4,6 @@ rm -rf libaco yaco \
 	include/aco.h include/aco_assert_override.h include/yaco.h \
 	acosw.S aco.c yaco-asm.s yaco.c \
 	acosw.o aco.o yaco-asm.o yaco.o \
-	unico.a
+	unico.o unico.a
+
+cd example && make clean
