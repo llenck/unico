@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# not using make is ok since this should compile pretty fast, even if sometimes
+# we could avoid recompilation of things
+
+function err_msg() {
+	echo $@
+	exit 1
+}
+
+function clone_if_any_missing() {
+	for f in ${@:2}; do
+		if ! [ -f "$f" ]; then
+			echo "couldn't find $f, cloning $1"
+			rm -rf libaco
+			git clone "$1" || err_msg "Failed to clone $1"
+			return
+		fi
+	done
+}
+
+if [ -z "$CC" ]; then
+	which gcc &>/dev/null && CC="gcc" || \
+	which clang &>/dev/null && CC="clang" || \
+	{ echo "Couldn't figure out compiler"; exit 1; }
+fi
+CFLAGS="-Wall -std=gnu99 -O3 $CFLAGS"
+INCLUDEDIRS="-I include"
+
+ARCH="$(uname -m)"
+
+if [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "i386" ]; then
+	# build libaco
+	clone_if_any_missing 'https://github.com/hnes/libaco' \
+		libaco/acosw.S libaco/aco.c libaco/aco.h libaco/aco_assert_override.h
+
+	echo "Copying over files from libaco"
+	cp libaco/acosw.S libaco/aco.c ./ || err_msg "Couldn't copy acosw.S or aco.c"
+	cp libaco/aco.h libaco/aco_assert_override.h include/ || \
+		err_msg "Couldn't copy aco.h or aco_assert_override.h"
+
+	echo "Compiling object files for libaco"
+	"$CC" $CFLAGS $INCLUDEDIRS -c acosw.S || err_msg "Error compiling acosw.S"
+	"$CC" $CFLAGS $INCLUDEDIRS -c aco.c || err_msg "Error compiling aco.c"
+
+	echo "Creating static library unico.a for files from libaco"
+	rm -f unico.a # ar doesn't overwrite, so we have to delete the old version if present
+	ar -rcs unico.a acosw.o aco.o || err_msg "Error creating unico.a"
+else
+	err_msg "Architecture not supported"
+fi
+
+echo "Compiling unico wrapper"
+"$CC" $CFLAGS $INCLUDEDIRS -c unico.c || err_msg "Error compiling unico.c"
+
+echo "Adding unico wrapper to unico.a"
+ar -rs unico.a unico.o || err_msg "Error adding unico.o to unico.a"
