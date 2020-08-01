@@ -18,14 +18,14 @@ void printer(unico_co_state* self) {
 }
 
 int main() {
-	unico_stack* stk;
+	unico_stack stk;
 	unico_co_state co;
 
 	unico_thread_init();
 
-	assert((stk = unico_create_stack(4096 * 16)) != NULL);
+	assert(unico_create_stack(&stk, 4096 * 16) != -1);
 
-	unico_create_co(&co, stk, printer);
+	unico_create_co(&co, &stk, printer);
 
 	// co.data is never touched by anything else, so we can use it to pass data back and
 	// forth between this function and the coroutine

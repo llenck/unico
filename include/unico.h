@@ -13,7 +13,7 @@
 
 #include "aco.h"
 
-typedef aco_share_stack_t unico_stack;
+typedef aco_share_stack_t* unico_stack;
 
 typedef struct unico_co_state_s unico_co_state;
 
@@ -31,7 +31,7 @@ extern __thread aco_t* thread_main_co;
 void unico_thread_init();
 #define unico_thread_free() aco_destroy(thread_main_co)
 
-#define unico_create_stack(n) aco_share_stack_new(n)
+int unico_create_stack(unico_stack* sp, size_t size);
 #define unico_free_stack(s) aco_share_stack_destroy(s)
 
 void unico_create_co(unico_co_state* state, unico_stack* stack, unico_coro fn);
