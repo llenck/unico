@@ -38,9 +38,9 @@ void unico_create_co(unico_co_state* state, unico_stack* stack, unico_coro fn);
 #define unico_free_co(state) aco_destroy((state)->other_co)
 
 #define unico_resume(state) aco_resume((state)->other_co)
-#define unico_yield(state) aco_yield()
+#define unico_yield(state) do { (void)(state); aco_yield(); } while (0)
 
-#define unico_exit(state) aco_exit()
+#define unico_exit(state) do { (void) (state); aco_exit(); } while (0)
 #define unico_is_finished(state) ((state)->other_co->is_end)
 
 #elif USE_YACO
@@ -59,7 +59,7 @@ typedef struct yaco_coro_state unico_co_state;
 #define unico_free_stack(s) yaco_destroy_stack(s)
 
 #define unico_create_co(state, stack, fn) yaco_create(state, stack, fn)
-#define unico_free_co(state) ((void)0)
+#define unico_free_co(state) ((void)(state))
 
 #define unico_resume(state) yaco_switch(state)
 #define unico_yield(state) yaco_switch(state)
